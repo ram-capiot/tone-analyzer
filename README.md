@@ -8,8 +8,9 @@ Here we want to show, how a [Salesforce](https://en.wikipedia.org/wiki/Salesforc
 
 We have written a Mule flow which makes the integration of [Salesforce](https://en.wikipedia.org/wiki/Salesforce.com) and [IBM Watson Tone Analyzer](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/tone-analyzer.html) service very easy.
 
-Below is the main flow that receives an incoming mail from a customer. First of all, we need to configure the interesed mail settings.
+Below is the main flow that receives an incoming mail from a customer.
 
+**tone-analyzer flow:**
 ```xml
 <flow name="tone-analyzer">
     <imaps:inbound-endpoint host="${gmail.host}" port="${gmail.port}" user="${gmail.user}" password="${gmail.password}" connector-ref="IMAP_for_Gmail" responseTimeout="10000" doc:name="imap"/>
@@ -21,4 +22,11 @@ Below is the main flow that receives an incoming mail from a customer. First of 
     <flow-ref name="get-tone" doc:name="get-tone"/>
     <flow-ref name="update-sf-contact-with-tone" doc:name="update-sf-contact-with-tone"/>
 </flow>
+```
+The corresponding IMAPS connector configuration is below
+```xml
+<imaps:connector name="IMAP_for_Gmail" validateConnections="true" deleteReadMessages="false" doc:name="IMAP" checkFrequency="1000">
+	<imaps:tls-client path="*" storePassword="*" />
+	<imaps:tls-trust-store path="*" storePassword="*" />
+</imaps:connector>
 ```
