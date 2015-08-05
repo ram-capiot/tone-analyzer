@@ -11,8 +11,10 @@ We have written a Mule flow which makes the integration of [Salesforce](https://
 ### Prerequisites
 However, below are the prerequisites to test the flow shown below:
 
-* an account at [IBM Blumix](https://console.ng.bluemix.net/)
-* a deployed [Tone Analyzer](https://console.ng.bluemix.net/catalog/tone-analyzer/) service to [IBM Blumix](https://console.ng.bluemix.net/)
+* An account at [IBM Blumix](https://console.ng.bluemix.net/)
+* A deployed [Tone Analyzer](https://console.ng.bluemix.net/catalog/tone-analyzer/) service to [IBM Blumix](https://console.ng.bluemix.net/)
+* An account at [Salesforce](https://login.salesforce.com/)
+* A custom contact field `CutomerTone__c` on [Salesforce](https://login.salesforce.com/). See [here](https://help.salesforce.com/HTViewHelpDoc?id=adding_fields.htm) to create a custom field on any Salesforce object.
 
 ### <a name="tone-analyzer"></a>tone-analyzer flow:
 Below is the main flow that receives an incoming mail from a customer.
