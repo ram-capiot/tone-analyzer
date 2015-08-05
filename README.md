@@ -30,8 +30,41 @@ The corresponding IMAPS connector configuration is below
 	<imaps:tls-trust-store path="*" storePassword="*" />
 </imaps:connector>
 ```
-The [tone analyzer flow](#tone-analyzer) hase three sub flows, they are [get-sf-contact-id](#get-sf-contact-id), [get-tone](#get-tone) and [update-sf-contact-with-tone](#update-sf-contact-with-tone). Each flow is detailed in its own section. 
+The [tone analyzer flow](#tone-analyzer) has three sub-flows, they are [get-sf-contact-id](#get-sf-contact-id), [get-tone](#get-tone) and [update-sf-contact-with-tone](#update-sf-contact-with-tone). Each flow is detailed in its own section. 
 
 ##### <a name="get-sf-contact-id"></a>get-sf-contact-id flow:
+This sub-flow retrieves the Salesforce contact id corresponding to the customer mail address. 
+```xml
+<sub-flow name="get-sf-contact-id">
+  <sfdc:query config-ref="Salesforce__Basic_authentication" query="dsql:SELECT Id FROM Contact WHERE email = #["'" + org.apache.commons.lang3.StringUtils.substringBetween(message.inboundProperties.fromAddress, "<", ">") + "'"]" doc:name="get-sf-contact-id"/>
+  <component class="com.capiot.sf.ContactIdRetriever" doc:name="retrieve-contact-id"/>
+</sub-flow>
+```
+To retrieve the contact id, we use Mule Salesforce connector and below is the connector configuration
+```xml
+<sfdc:config name="Salesforce__Basic_authentication" username="${sf.username}" password="${sf.password}" securityToken="${sf.securityToken}" doc:name="Salesforce: Basic authentication"/>
+```
+The **sfdc:query** returns an instance of `java.util.Iterator`. So we have written a custom java component to retrieve the id.
+```java
+import java.util.Iterator;
+import java.util.Map;
+import org.mule.api.MuleEventContext;
+import org.mule.api.lifecycle.Callable;
+
+public class ContactIdRetriever implements Callable {
+	public Object onCall(MuleEventContext eventContext) throws Exception {
+		Map<?, ?> contactIdMap = null;
+		if (eventContext.getMessage().getPayload() instanceof Iterator) {
+			Iterator<?> iterator = (Iterator<?>) eventContext.getMessage().getPayload();
+			if (iterator.hasNext()) {
+				contactIdMap = (Map<?, ?>) iterator.next();
+			}
+			return contactIdMap.get("Id");
+		} 
+		return null;
+	}
+}
+```
+So, [this](#get-sf-contact-id) sub-flow finally returns a contact id corresponding to the customer mail address. In the [tone analyzer flow](#tone-analyzer), we use an enricher to enrich the message with the contact id retrieved from Salesforce and this contact id is stored in a flow variable `#[flowVars.contactId]`
 ##### <a name="get-tone"></a>get-tone flow:
 ##### <a name="update-sf-contact-with-tone"></a>update-sf-contact-with-tone flow:
