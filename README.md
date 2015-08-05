@@ -106,4 +106,5 @@ The corresponding Mule Dataweave transformation is shown below
 }
 		
 ```
+So [this](#get-tone) flow returns tone response in json format. [Here](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/doc/tone-analyzer/output.shtml#api-tone) you can find a sample tone response and corresponding documentation.
 ### <a name="update-sf-contact-with-tone"></a>update-sf-contact-with-tone flow:
