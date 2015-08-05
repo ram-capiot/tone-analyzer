@@ -10,7 +10,7 @@ We have written a Mule flow which makes the integration of [Salesforce](https://
 
 Below is the main flow that receives an incoming mail from a customer.
 
-**tone-analyzer flow:**
+##### <a name="tone-analyzer"></a>tone-analyzer flow:
 ```xml
 <flow name="tone-analyzer">
     <imaps:inbound-endpoint host="${gmail.host}" port="${gmail.port}" user="${gmail.user}" password="${gmail.password}" connector-ref="IMAP_for_Gmail" responseTimeout="10000" doc:name="imap"/>
@@ -30,3 +30,8 @@ The corresponding IMAPS connector configuration is below
 	<imaps:tls-trust-store path="*" storePassword="*" />
 </imaps:connector>
 ```
+The [tone analyzer flow](#tone-analyzer) hase three sub flows, they are [get-sf-contact-id](#get-sf-contact-id), [get-tone](#get-tone) and [update-sf-contact-with-tone](#update-sf-contact-with-tone). Each flow is detailed in its own section. 
+
+##### <a name="get-sf-contact-id"></a>get-sf-contact-id flow:
+##### <a name="get-tone"></a>get-tone flow:
+##### <a name="update-sf-contact-with-tone"></a>update-sf-contact-with-tone flow:
