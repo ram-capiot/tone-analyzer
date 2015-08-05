@@ -8,9 +8,14 @@ Here we want to show, how a [Salesforce](https://en.wikipedia.org/wiki/Salesforc
 
 We have written a Mule flow which makes the integration of [Salesforce](https://en.wikipedia.org/wiki/Salesforce.com) and [IBM Watson Tone Analyzer](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/tone-analyzer.html) service very easy.
 
-Below is the main flow that receives an incoming mail from a customer.
+### Prerequisites
+However, below are the prerequisites to test the flow shown below:
 
-##### <a name="tone-analyzer"></a>tone-analyzer flow:
+* an account at [IBM Blumix](https://console.ng.bluemix.net/)
+* a deployed [Tone Analyzer](https://console.ng.bluemix.net/catalog/tone-analyzer/) service to [IBM Blumix](https://console.ng.bluemix.net/)
+
+### <a name="tone-analyzer"></a>tone-analyzer flow:
+Below is the main flow that receives an incoming mail from a customer.
 ```xml
 <flow name="tone-analyzer">
     <imaps:inbound-endpoint host="${gmail.host}" port="${gmail.port}" user="${gmail.user}" password="${gmail.password}" connector-ref="IMAP_for_Gmail" responseTimeout="10000" doc:name="imap"/>
@@ -32,7 +37,7 @@ The corresponding IMAPS connector configuration is below
 ```
 The [tone analyzer flow](#tone-analyzer) has three sub-flows, they are [get-sf-contact-id](#get-sf-contact-id), [get-tone](#get-tone) and [update-sf-contact-with-tone](#update-sf-contact-with-tone). Each flow is detailed in its own section. 
 
-##### <a name="get-sf-contact-id"></a>get-sf-contact-id flow:
+### <a name="get-sf-contact-id"></a>get-sf-contact-id flow:
 This sub-flow retrieves the Salesforce contact id corresponding to the customer mail address. 
 ```xml
 <sub-flow name="get-sf-contact-id">
@@ -66,5 +71,26 @@ public class ContactIdRetriever implements Callable {
 }
 ```
 So, [this](#get-sf-contact-id) sub-flow finally returns a contact id corresponding to the customer mail address. In the [tone analyzer flow](#tone-analyzer), we use an enricher to enrich the message with the contact id retrieved from Salesforce and this contact id is stored in a flow variable `#[flowVars.contactId]`
-##### <a name="get-tone"></a>get-tone flow:
-##### <a name="update-sf-contact-with-tone"></a>update-sf-contact-with-tone flow:
+
+### <a name="get-tone"></a>get-tone flow:
+This sub-flow gets tone of the mail from the cusomer. It posts the mail body, received from the customer, to [IBM Watson Tone Analyzer](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/tone-analyzer.html) and retrieves linguistic tone of the mail.
+```xml
+<sub-flow name="get-tone">
+  <dw:transform-message doc:name="Transform Message">
+    <dw:set-payload resource="classpath:EmailBodyToTonePayload.dwl"></dw:set-payload>
+  </dw:transform-message>
+  <http:request config-ref="HTTP_Request_Configuration" path="/v1/tone" method="POST" port="443" doc:name="get-tone">
+    <http:request-builder>
+      <http:header headerName="Content-Type" value="application/json"/>
+      <http:header headerName="Authorization" value="${authorization}"/>
+    </http:request-builder>
+  </http:request>
+  <object-to-string-transformer doc:name="object-to-string"/>
+  <logger message="#[payload]" level="INFO" doc:name="logger"/>
+</sub-flow>
+```
+The corresponding HTTP Request Connector is shown below
+```xml
+<http:request-config name="HTTP_Request_Configuration" protocol="HTTPS" host="gateway.watsonplatform.net" port="443" basePath="tone-analyzer-experimental/api" doc:name="Tone_Analyzer_HTTP_Request_Configuration"/>
+```
+### <a name="update-sf-contact-with-tone"></a>update-sf-contact-with-tone flow:
