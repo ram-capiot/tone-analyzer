@@ -150,4 +150,4 @@ The corresponding Dataweave transformation which transforms tone payload to such
 	CustomerTone__c: payload.tone
 }]
 ```
-So finally, [this](update-sf-contact-with-tone) flow updates tone, either `Angry` or `Normal`, to Salesforce contact.
+So finally, [this](#update-sf-contact-with-tone) flow updates tone, either `Angry` or `Normal`, to Salesforce contact.
