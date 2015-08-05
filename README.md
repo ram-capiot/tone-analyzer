@@ -95,4 +95,15 @@ The corresponding HTTP Request Connector is shown below
 ```xml
 <http:request-config name="HTTP_Request_Configuration" protocol="HTTPS" host="gateway.watsonplatform.net" port="443" basePath="tone-analyzer-experimental/api" doc:name="Tone_Analyzer_HTTP_Request_Configuration"/>
 ```
+The corresponding Mule Dataweave transformation is shown below
+```text
+%dw 1.0
+%output application/json
+---
+{
+	"scorecard" : "email",
+	"text" : payload
+}
+		
+```
 ### <a name="update-sf-contact-with-tone"></a>update-sf-contact-with-tone flow:
