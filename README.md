@@ -75,7 +75,7 @@ public class ContactIdRetriever implements Callable {
 So, [this](#get-sf-contact-id) sub-flow finally returns a contact id corresponding to the customer mail address. In the [tone analyzer flow](#tone-analyzer), we use an enricher to enrich the message with the contact id retrieved from Salesforce and this contact id is stored in a flow variable `#[flowVars.contactId]`
 
 ### <a name="get-tone"></a>get-tone flow:
-This sub-flow gets tone of the mail from the cusomer. It posts the mail body, received from the customer, to [IBM Watson Tone Analyzer](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/tone-analyzer.html) and retrieves linguistic tone of the mail.
+This sub-flow gets tone of the mail from the customer. It posts the mail body, received from the customer, to [IBM Watson Tone Analyzer](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/tone-analyzer.html) and retrieves linguistic tone of the mail.
 ```xml
 <sub-flow name="get-tone">
   <dw:transform-message doc:name="Transform Message">
@@ -107,4 +107,47 @@ The corresponding Mule Dataweave transformation is shown below
 		
 ```
 So [this](#get-tone) flow returns tone response in json format. [Here](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/doc/tone-analyzer/output.shtml#api-tone) you can find a sample tone response and corresponding documentation.
+
 ### <a name="update-sf-contact-with-tone"></a>update-sf-contact-with-tone flow:
+This sub-flow updates the tone of the customer mail, to the custome field `CustomerTone__c` of Salesforce contact id.
+```xml
+<sub-flow name="update-sf-contact-with-tone">
+        <json:json-to-object-transformer returnClass="java.lang.Object" doc:name="json-to-object"/>
+        <expression-component doc:name="calculate-tone">
+        <![CDATA[
+         cheerfulnessTone = payload.children[0].children[0].normalized_score;
+         negativeTone = payload.children[0].children[1].normalized_score;
+         angerTone = payload.children[0].children[2].normalized_score;
+         angryTone = negativeTone + angerTone;
+         if(angryTone > cheerfulnessTone) {
+	   		payload = '{"toneScore" :' + angryTone + ', "tone" : "Angry"}';
+         } else {
+	   		payload = '{"toneScore" :' + cheerfulnessTone + ', "tone" : "Normal"}';
+         }]]>
+        </expression-component>
+        <logger message="Tone: #[payload]" level="INFO" doc:name="logger"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:input-payload doc:sample="unknown.dwl"/>
+            <dw:set-payload resource="classpath:ToneToContactUpdate.dwl"/>
+        </dw:transform-message>
+        <sfdc:update config-ref="Salesforce__Basic_authentication" type="Contact" doc:name="save-mail-tone">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:update>
+        <logger message="#[payload]" level="INFO" doc:name="logger"/>
+    </sub-flow>
+```
+The above flow applies some logic on the tone response retrieved from the [get-tone flow](#get-tone). This logic is encapsulated in the Mule **expression-component**. This logic finally gives a json payload, represents the tone either `Angry` or `Normal`, and is updated to Salesforce contact's custom field `CustomerTone__c`. 
+
+The corresponding Dataweave transformation which transforms tone payload to such a payload corresponds to Salesforce Contact update is shown below:
+```text
+%dw 1.0
+%input payload application/json
+%output application/java
+
+---
+[{
+	Id: flowVars.contactId,
+	CustomerTone__c: payload.tone
+}]
+```
+So finally, [this](update-sf-contact-with-tone) flow updates tone, either `Angry` or `Normal`, to Salesforce contact.
