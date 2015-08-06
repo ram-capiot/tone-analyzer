@@ -19,7 +19,7 @@ However, below are the prerequisites to test the flow shown below:
 ### <a name="flow-steps"> Flow steps:
 1. Receive a mail from the configured mail box using Mule IMAP connector. Once a mail is received, the current Mule Message contains eamil body as `payload` and customer mail address as an inbound header `fromAddress`.
 2. Enrich the current Mule Message with the Salesforce contact id corresponding to the `fromAddress` retrieved above. The enriched Mule Message, now contanins, a flow variable `contactId` which holds the Salesforce contact id corresponding to the customer mail address.
-3. Post the mail body held in the current `payload` to the IBM Tone Analyzer service. The Tone Analyzer service gives a json response, representing tone of the mail, in case of success. [See]() here for a sample response
+3. Post the mail body held in the current `payload` to the IBM Tone Analyzer service. The Tone Analyzer service gives a json response, representing tone of the mail, in case of success. [See](./sample-response.json) here for a sample response
 4. Calculate the tone based on the rule described here. As of now, we are interested only on **Emotion Tone**. The Emotion Tone has three children tones named **Cheerfulness**, **Negative** and **Anger**. Each of these tones has an attribute called `normalized_score` representing the value of the tone. If the sum of `normalized_score`s of Negative and Anger tones is greater than Cheerfulness tone then we consider the tone of the customer is **Angry** otherwise **Normal**.
 5. Update the Salesforce Contact corresponding to the contact id held in the flow variable `contactId`, with the tone calculated above.
 
